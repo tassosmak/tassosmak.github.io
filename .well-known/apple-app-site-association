@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["LXL43GG782.com.tassosmak.busmakro"],
+        "components": [{ "/": "/b/*", "comment": "a shared bus or line" }]
+      }
+    ]
+  }
+}

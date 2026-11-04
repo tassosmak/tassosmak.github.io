@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shared bus · BusMakro</title>
+<meta name="description" content="A bus shared with you from BusMakro, the Athens transport app.">
+<meta property="og:title" content="A bus shared with you">
+<meta property="og:description" content="Open it in BusMakro to see where it is and when it gets to you.">
+<meta property="og:image" content="https://tassosmak.github.io/BusMakro-Swift/shots/en-3-line.jpg">
+<link rel="icon" href="icon.png">
+<style>
+  :root { --bg1: #06122f; --bg2: #10398b; --card: rgba(255,255,255,.1); --line: rgba(255,255,255,.22); --soft: rgba(255,255,255,.8); --accent: #7fb6ff; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: #fff; display: grid; place-items: center; padding: 24px 16px;
+    background: radial-gradient(60% 45% at 50% 40%, rgba(60,140,255,.35), transparent 70%), linear-gradient(180deg, var(--bg1), var(--bg2));
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  main { width: 100%; max-width: 420px; text-align: center; }
+  .app { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; margin-bottom: 28px; color: #fff; text-decoration: none; }
+  .app img { width: 36px; height: 36px; border-radius: 9px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 28px 22px; }
+  .lbl { font-size: 14px; font-weight: 600; color: var(--soft); margin: 0 0 14px; }
+  .badge { display: inline-block; background: #0066eb; border-radius: 12px; padding: 4px 18px; font: 800 40px/1.2 ui-rounded, -apple-system, sans-serif; margin-bottom: 14px; }
+  h1 { font-size: 24px; line-height: 1.25; margin: 0 0 8px; }
+  .sub { color: var(--soft); margin: 0; }
+  .btn { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 999px; font-weight: 700; text-decoration: none; margin-top: 12px; }
+  .primary { background: #fff; color: #0b2a6b; margin-top: 24px; }
+  .ghost { border: 1px solid var(--line); color: #fff; }
+  .note { font-size: 14px; color: var(--soft); margin-top: 22px; }
+  .note a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <a class="app" href="https://tassosmak.github.io/BusMakro-Swift/"><img src="icon.png" alt="">BusMakro</a>
+  <div class="card">
+    <p class="lbl" id="lbl">Shared with you</p>
+    <div class="badge" id="line">—</div>
+    <h1 id="title">Take this bus</h1>
+    <p class="sub" id="sub"></p>
+    <a class="btn primary" id="open" href="#">Open in BusMakro</a>
+    <a class="btn ghost" id="get" href="https://tassosmak.github.io/BusMakro-Swift/">Get BusMakro</a>
+  </div>
+  <p class="note" id="note">Have the app? This link opens it right on the bus. If it opened this page instead, tap “Open in BusMakro”.</p>
+</main>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var line = q.get("line") || "", stop = q.get("stop"), bus = q.get("bus");
+  var el = (navigator.language || "").toLowerCase().indexOf("el") === 0;
+  var T = el ? {
+    lbl: "Σου το έστειλαν", title: "Πάρε αυτό το λεωφορείο", stop: "Στάση ", bus: "Λεωφορείο ",
+    open: "Άνοιγμα στο BusMakro", get: "Κατέβασε το BusMakro",
+    note: "Έχεις την εφαρμογή; Ο σύνδεσμος την ανοίγει κατευθείαν στο λεωφορείο. Αν άνοιξε αυτή η σελίδα, πάτα «Άνοιγμα στο BusMakro».",
+    missing: "Ο σύνδεσμος δεν έχει γραμμή."
+  } : {
+    lbl: "Shared with you", title: "Take this bus", stop: "Stop ", bus: "Bus ",
+    open: "Open in BusMakro", get: "Get BusMakro",
+    note: "Have the app? This link opens it right on the bus. If it opened this page instead, tap “Open in BusMakro”.",
+    missing: "This link has no line in it."
+  };
+  if (el) document.documentElement.lang = "el";
+  function set(id, text) { document.getElementById(id).textContent = text; }
+  set("lbl", T.lbl); set("open", T.open); set("get", T.get); set("note", T.note);
+  if (!line) { set("title", T.missing); document.getElementById("open").style.display = "none"; return; }
+  set("line", line);
+  set("title", T.title);
+  set("sub", [stop && T.stop + stop, bus && T.bus + bus].filter(Boolean).join(" · "));
+  // the app's own link, for when iOS showed this page (opened in a browser, or the app isn't installed)
+  var app = "busmakro://line/" + encodeURIComponent(line) + "?" +
+    [stop && "stop=" + encodeURIComponent(stop), bus && "bus=" + encodeURIComponent(bus)].filter(Boolean).join("&");
+  document.getElementById("open").href = app;
+  document.title = line + " · BusMakro";
+})();
+</script>
+</body>
+</html>
