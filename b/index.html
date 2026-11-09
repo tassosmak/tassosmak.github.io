@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shared bus or stop · BusMakro</title>
-<meta name="description" content="A bus or stop shared with you from BusMakro, the Athens transport app.">
+<title>Shared bus, stop or trip · BusMakro</title>
+<meta name="description" content="A bus, stop or trip shared with you from BusMakro, the Athens transport app.">
 <meta property="og:title" content="Shared with you from BusMakro">
 <meta property="og:description" content="Open it in BusMakro to see the live buses and when they get to you.">
 <meta property="og:image" content="https://tassosmak.github.io/BusMakro-Swift/shots/en-3-line.jpg">
@@ -41,6 +41,8 @@
     <h1 id="title">Take this bus</h1>
     <p class="sub" id="sub"></p>
     <a class="btn primary" id="open" href="#">Open in BusMakro</a>
+    <a class="btn ghost" id="maps" href="#" style="display:none">Directions in Apple Maps</a>
+    <a class="btn ghost" id="gmaps" href="#" style="display:none">Directions in Google Maps</a>
     <a class="btn ghost" id="get" href="https://apps.apple.com/gr/app/busmakro/id6830298539">Get BusMakro</a>
   </div>
   <p class="note" id="note">Have the app? This link opens it right on the bus. If it opened this page instead, tap “Open in BusMakro”.</p>
@@ -56,18 +58,39 @@
     note: "Έχεις την εφαρμογή; Ο σύνδεσμος την ανοίγει κατευθείαν στο λεωφορείο. Αν άνοιξε αυτή η σελίδα, πάτα «Άνοιγμα στο BusMakro».",
     missing: "Ο σύνδεσμος δεν έχει γραμμή.",
     stopTitle: "Συναντιόμαστε σε αυτή τη στάση", stopBadge: "Στάση",
-    stopNote: "Έχεις την εφαρμογή; Ο σύνδεσμος την ανοίγει στη στάση με τα λεωφορεία που έρχονται. Αν άνοιξε αυτή η σελίδα, πάτα «Άνοιγμα στο BusMakro»."
+    stopNote: "Έχεις την εφαρμογή; Ο σύνδεσμος την ανοίγει στη στάση με τα λεωφορεία που έρχονται. Αν άνοιξε αυτή η σελίδα, πάτα «Άνοιγμα στο BusMakro».",
+    tripTitle: "Έλα εδώ", tripBadge: "Προορισμός", tripSub: "Το BusMakro βρίσκει τη διαδρομή από εκεί που είσαι: λεωφορείο, μετρό, τραμ.",
+    maps: "Οδηγίες στους Χάρτες της Apple", gmaps: "Οδηγίες στους Χάρτες Google",
+    tripNote: "Έχεις την εφαρμογή; Ο σύνδεσμος ανοίγει τον σχεδιασμό διαδρομής προς αυτό το μέρος. Αν άνοιξε αυτή η σελίδα, πάτα «Άνοιγμα στο BusMakro»."
   } : {
     lbl: "Shared with you", title: "Take this bus", stop: "Stop ", bus: "Bus ",
     open: "Open in BusMakro", get: "Get BusMakro",
     note: "Have the app? This link opens it right on the bus. If it opened this page instead, tap “Open in BusMakro”.",
     missing: "This link has no line in it.",
     stopTitle: "Meet me at this stop", stopBadge: "Stop",
-    stopNote: "Have the app? This link opens it at the stop, with the buses on their way. If it opened this page instead, tap “Open in BusMakro”."
+    stopNote: "Have the app? This link opens it at the stop, with the buses on their way. If it opened this page instead, tap “Open in BusMakro”.",
+    tripTitle: "Meet me here", tripBadge: "Destination", tripSub: "BusMakro plans the way from wherever you are: bus, metro and tram.",
+    maps: "Directions in Apple Maps", gmaps: "Directions in Google Maps",
+    tripNote: "Have the app? This link opens the trip planner to this place. If it opened this page instead, tap “Open in BusMakro”."
   };
   if (el) document.documentElement.lang = "el";
   function set(id, text) { document.getElementById(id).textContent = text; }
   set("lbl", T.lbl); set("open", T.open); set("get", T.get); set("note", T.note);
+  // a shared trip's destination: /b/?to=37.97,23.73&name=Acropolis%20Museum
+  var to = (q.get("to") || "").split(",").map(Number);
+  if (to.length === 2 && isFinite(to[0]) && isFinite(to[1])) {
+    var place = name || T.tripBadge, ll = to[0] + "," + to[1];
+    set("lbl", T.lbl); set("line", place); set("title", T.tripTitle); set("sub", T.tripSub); set("note", T.tripNote);
+    var b = document.getElementById("line"); b.style.fontSize = "26px"; b.style.background = "#d9363e";
+    document.getElementById("open").href = "busmakro://to?lat=" + to[0] + "&lon=" + to[1] + "&name=" + encodeURIComponent(name || "");
+    var m = document.getElementById("maps"), g = document.getElementById("gmaps");
+    m.textContent = T.maps; m.style.display = "flex";
+    m.href = "https://maps.apple.com/?daddr=" + ll + "&dirflg=r" + (name ? "&q=" + encodeURIComponent(name) : "");
+    g.textContent = T.gmaps; g.style.display = "flex";
+    g.href = "https://www.google.com/maps/dir/?api=1&destination=" + ll + "&travelmode=transit";
+    document.title = place + " · BusMakro";
+    return;
+  }
   // a shared stop: /b/?stop=60718 (no line)
   if (!line && stop) {
     set("lbl", T.lbl); set("line", name || stop); set("title", T.stopTitle); set("sub", T.stopBadge + " " + stop); set("note", T.stopNote);
