@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shared bus · BusMakro</title>
-<meta name="description" content="A bus shared with you from BusMakro, the Athens transport app.">
-<meta property="og:title" content="A bus shared with you">
-<meta property="og:description" content="Open it in BusMakro to see where it is and when it gets to you.">
+<title>Shared bus or stop · BusMakro</title>
+<meta name="description" content="A bus or stop shared with you from BusMakro, the Athens transport app.">
+<meta property="og:title" content="Shared with you from BusMakro">
+<meta property="og:description" content="Open it in BusMakro to see the live buses and when they get to you.">
 <meta property="og:image" content="https://tassosmak.github.io/BusMakro-Swift/shots/en-3-line.jpg">
 <link rel="icon" href="icon.png">
 <style>
@@ -54,16 +54,27 @@
     lbl: "Σου το έστειλαν", title: "Πάρε αυτό το λεωφορείο", stop: "Στάση ", bus: "Λεωφορείο ",
     open: "Άνοιγμα στο BusMakro", get: "Κατέβασε το BusMakro",
     note: "Έχεις την εφαρμογή; Ο σύνδεσμος την ανοίγει κατευθείαν στο λεωφορείο. Αν άνοιξε αυτή η σελίδα, πάτα «Άνοιγμα στο BusMakro».",
-    missing: "Ο σύνδεσμος δεν έχει γραμμή."
+    missing: "Ο σύνδεσμος δεν έχει γραμμή.",
+    stopTitle: "Συναντιόμαστε σε αυτή τη στάση", stopBadge: "Στάση",
+    stopNote: "Έχεις την εφαρμογή; Ο σύνδεσμος την ανοίγει στη στάση με τα λεωφορεία που έρχονται. Αν άνοιξε αυτή η σελίδα, πάτα «Άνοιγμα στο BusMakro»."
   } : {
     lbl: "Shared with you", title: "Take this bus", stop: "Stop ", bus: "Bus ",
     open: "Open in BusMakro", get: "Get BusMakro",
     note: "Have the app? This link opens it right on the bus. If it opened this page instead, tap “Open in BusMakro”.",
-    missing: "This link has no line in it."
+    missing: "This link has no line in it.",
+    stopTitle: "Meet me at this stop", stopBadge: "Stop",
+    stopNote: "Have the app? This link opens it at the stop, with the buses on their way. If it opened this page instead, tap “Open in BusMakro”."
   };
   if (el) document.documentElement.lang = "el";
   function set(id, text) { document.getElementById(id).textContent = text; }
   set("lbl", T.lbl); set("open", T.open); set("get", T.get); set("note", T.note);
+  // a shared stop: /b/?stop=60718 (no line)
+  if (!line && stop) {
+    set("lbl", T.lbl); set("line", stop); set("title", T.stopTitle); set("sub", T.stopBadge + " " + stop); set("note", T.stopNote);
+    document.getElementById("open").href = "busmakro://stop/" + encodeURIComponent(stop);
+    document.title = T.stopBadge + " " + stop + " · BusMakro";
+    return;
+  }
   if (!line) { set("title", T.missing); document.getElementById("open").style.display = "none"; return; }
   set("line", line);
   set("title", T.title);
