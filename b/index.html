@@ -30,6 +30,8 @@
   .ghost { border: 1px solid var(--line); color: #fff; }
   .note { font-size: 14px; color: var(--soft); margin-top: 22px; }
   .note a { color: var(--accent); }
+  .live { margin: 16px 0 0; font: 800 34px/1.2 ui-rounded, -apple-system, sans-serif; color: #4ade80; }
+  .live small { display: block; font: 600 14px/1.4 -apple-system, sans-serif; color: var(--soft); margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -40,6 +42,7 @@
     <div class="badge" id="line">—</div>
     <h1 id="title">Take this bus</h1>
     <p class="sub" id="sub"></p>
+    <p class="live" id="live" style="display:none" aria-live="polite"></p>
     <a class="btn primary" id="open" href="#">Open in BusMakro</a>
     <a class="btn ghost" id="maps" href="#" style="display:none">Directions in Apple Maps</a>
     <a class="btn ghost" id="gmaps" href="#" style="display:none">Directions in Google Maps</a>
@@ -108,6 +111,30 @@
     [stop && "stop=" + encodeURIComponent(stop), bus && "bus=" + encodeURIComponent(bus)].filter(Boolean).join("&");
   document.getElementById("open").href = app;
   document.title = line + " · BusMakro";
+  // live: when the shared bus (or the line's next one) gets to the stop, from staseis-rt's open
+  // feed (the same data the app uses), counted again every 15 s
+  if (!stop) return;
+  var L = el ? { min: " λεπ.", now: "Φτάνει", away: "μέχρι τη στάση", next: "το επόμενο " + line, gone: "Έχει περάσει τη στάση", upd: "ενημερώνεται ζωντανά" }
+             : { min: " min", now: "Arriving", away: "to the stop", next: "the next " + line, gone: "It has passed the stop", upd: "updating live" };
+  var live = document.getElementById("live");
+  function show(text, small) { live.style.display = "block"; live.innerHTML = ""; live.appendChild(document.createTextNode(text));
+    var s = document.createElement("small"); s.textContent = small; live.appendChild(s); }
+  function tick() {
+    fetch("https://transit.haroldpoi.dev/v1/stops/" + encodeURIComponent(stop), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.arrivals) return;
+        var mine = d.arrivals.filter(function (a) { return a.line === line; });
+        var a = (bus && mine.filter(function (x) { return x.vehicle === bus; })[0]) || null;
+        var shownBus = !!a;
+        if (!a) a = mine.sort(function (x, y) { return x.eta_s - y.eta_s; })[0];
+        if (!a) { if (bus) show(L.gone, L.upd); return; }
+        var m = Math.round(a.eta_s / 60);
+        show(m <= 1 ? L.now : m + L.min, (shownBus ? L.away : L.next + " · " + L.away) + " · " + L.upd);
+      })
+      .catch(function () {});
+  }
+  tick(); setInterval(tick, 15000);
 })();
 </script>
 </body>
